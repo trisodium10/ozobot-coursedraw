@@ -12,7 +12,7 @@ green=(0, 0.6, 0, 1)
 black=(0, 0, 0, 1)
 
 # block size in inches
-step_size = 0.1275
+step_size = 0.19685  # 5 mm
 
 """
 Function Definitions
@@ -47,17 +47,18 @@ class Ozo_Path:
         self.fig,self.ax = plt.subplots(1,1,figsize=figsize)
         self.fig.tight_layout()
 
-        
         self.ax.axis('equal')
         self.ax.set_xlim(self.xlimits)
         self.ax.set_ylim(self.ylimits)
         self.ax.axis('off')
 
-        self._step_pointer = np.array([0,0])
-        self._step_direction = np.array([1,0])
+        self._step_pointer = np.array([0.0,0.0])
+        self._step_direction = np.array([1.0,0.0])
         self._angle = 0
 
-    def add_step(self,color,count=1):
+        self._waypoints = []
+
+    def add_step(self,color,count=1,step_frac=1.0):
         """
         Add a step of a specified RGBA color
         to the current step_pointer location
@@ -67,7 +68,7 @@ class Ozo_Path:
             step = make_step(self._step_pointer,color,angle=self._angle*180/np.pi)
             self.ax.add_patch(step)  # add the step to the board
             # increment the step in the current direction
-            self._step_pointer = self._step_pointer+self._step_direction*step_size
+            self._step_pointer += self._step_direction*step_size*step_frac
             counter+=1
 
     def set_position(self,loc):
@@ -80,15 +81,61 @@ class Ozo_Path:
     def set_rel_direction(self,angle):
         self.set_direction(self._angle*180/np.pi+angle)
 
+    def shift_position(self,x,y):
+        """
+        shift current position by x and y
+        """
+        self._step_pointer+=np.array([x,y])
+
+    def store_position(self,label=''):
+        """
+        save current position for later reference
+        """ 
+        self._waypoints.append([label,self._step_pointer.copy()])
+
+    def add_turn(self,angle,rate=0.5,step_number=10,color=black):
+        """
+        Place a turn based on relative angle
+        angle - relative angle to current direction
+        color - color of the path
+        rate - step size per increment
+        step_num - number of steps in the turn
+        """
+        angle_inc = angle/step_number
+        counter = 0
+        while counter < step_number:
+            self.set_rel_direction(angle_inc)
+            self.add_step(color,step_frac=rate)
+            counter+=1
+
+    def add_step_seq(self,color_list):
+        """
+        Add a step for each color listed
+        """
+        for color in color_list:
+            self.add_step(color)
+
     def add_fast(self):
-        self.add_step(blue)
-        self.add_step(black)
-        self.add_step(blue)
+        """
+        add the color sequence for
+            the "fast" command
+        """
+        self.add_step_seq([blue,black,blue])
+
 
     def add_slow(self):
-        self.add_step(red)
-        self.add_step(black)
-        self.add_step(red)
+        """
+        add the color sequence for
+            the "slow" command
+        """
+        self.add_step_seq([red,black,red])
+
+    def add_turbo(self):
+        """
+        add the color sequence for
+            the "turbo" command
+        """
+        self.add_step_seq([red,blue,red])
 
     def show(self):
         #self.ax.axis('equal')
