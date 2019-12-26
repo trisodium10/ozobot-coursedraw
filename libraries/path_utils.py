@@ -36,13 +36,21 @@ def make_step(loc,color,angle=0):
     return rect
 
 class Ozo_Path:
-    def __init__(self,figsize):
+    def __init__(self,figsize,scale=1.0):
         """
         Create an Ozo_Path figure with size
         in inches defined by figsize in (x,y)
+
+        TODO: add scale and adapt window/sizes
+            change all units except figsize in terms of steps
         """
+        self.scale = scale
+        #self.step_size = step_size*scale
+
         self.xlimits=[0,figsize[0]]
         self.ylimits=[0,figsize[1]]
+
+        # figsize*=scale  # rescale window according to scale
 
         self.fig,self.ax = plt.subplots(1,1,figsize=figsize)
         self.fig.tight_layout()
@@ -52,7 +60,7 @@ class Ozo_Path:
         self.ax.set_ylim(self.ylimits)
         self.ax.axis('off')
 
-        self._step_pointer = np.array([0.0,0.0])
+        self._step_pointer = np.array([step_size,step_size])
         self._step_direction = np.array([1.0,0.0])
         self._angle = 0
 
@@ -72,7 +80,7 @@ class Ozo_Path:
             counter+=1
 
     def set_position(self,loc):
-        self._step_pointer = np.array(loc)
+        self._step_pointer = np.array(loc)*step_size
 
     def set_direction(self,angle):
         self._angle = angle*np.pi/180
@@ -85,7 +93,7 @@ class Ozo_Path:
         """
         shift current position by x and y
         """
-        self._step_pointer+=np.array([x,y])
+        self._step_pointer+=np.array([x*step_size,y*step_size])
 
     def store_position(self,label=''):
         """
