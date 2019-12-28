@@ -1,0 +1,11 @@
+*.pyc
+*.py~
+*.json~
+*.nocommit
+.gitignore~
+*.DS_Store
+description~
+.ipynb_checkpoints/
+*.o*
+**.vscode/
+libraries/__pycache__/path_utils.cpython-37.pyc
